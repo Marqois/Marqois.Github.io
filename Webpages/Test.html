@@ -17,18 +17,26 @@
             max-width: 400px;
             border: 2px solid #333;
             margin-bottom: 20px;
+            display: none; /* Hide video initially */
         }
         #qr-reader-results {
             font-size: 1.2em;
             margin-top: 10px;
+        }
+        #start-stop-btn {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
     <h1>QR Code MP3 Player</h1>
+    <button id="start-stop-btn">Start Scanning</button>
     <video id="qr-video"></video>
-    <div id="qr-reader-results">Scan a QR code with an MP3 link to play audio.</div>
+    <div id="qr-reader-results">Click "Start Scanning" to begin.</div>
 
     <!-- Load QR Scanner library -->
     <script type="module">
@@ -37,20 +45,46 @@
         let player; // Audio player instance
         let playbackTimer;
         const playbackDuration = 30; // Duration to play audio in seconds
+        let qrScanner; // QR scanner instance
 
         document.addEventListener('DOMContentLoaded', function () {
             const video = document.getElementById('qr-video');
             const resultContainer = document.getElementById("qr-reader-results");
+            const startStopBtn = document.getElementById("start-stop-btn");
 
-            // Initialize QR scanner
-            const qrScanner = new QrScanner(video, result => {
+            // Initialize QR scanner without starting it immediately
+            qrScanner = new QrScanner(video, result => {
                 console.log('Decoded QR code:', result);
                 handleScannedLink(result.data);
             }, { 
                 highlightScanRegion: true,
                 highlightCodeOutline: true,
             });
-            qrScanner.start(); // Start scanning
+
+            // Toggle scanning on button click
+            startStopBtn.addEventListener('click', () => {
+                if (qrScanner.isActive()) {
+                    stopScanning();
+                } else {
+                    startScanning();
+                }
+            });
+
+            // Start the QR scanner and display the video feed
+            function startScanning() {
+                qrScanner.start();
+                video.style.display = 'block';
+                startStopBtn.textContent = "Stop Scanning";
+                resultContainer.textContent = "Scanning for QR code...";
+            }
+
+            // Stop the QR scanner and hide the video feed
+            function stopScanning() {
+                qrScanner.stop();
+                video.style.display = 'none';
+                startStopBtn.textContent = "Start Scanning";
+                resultContainer.textContent = "Scanning stopped.";
+            }
 
             // Handle the scanned QR code data
             function handleScannedLink(data) {
@@ -61,6 +95,7 @@
                     resultContainer.textContent = "Scanned link is not an MP3 file.";
                     console.log("The scanned link is not an MP3 file.");
                 }
+                stopScanning(); // Stop scanning after a QR code is processed
             }
 
             // Play audio from the scanned URL
