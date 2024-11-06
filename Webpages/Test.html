@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Player with QR Code Scanner</title>
+    <title>QR Code Audio Player</title>
     <script src="https://unpkg.com/qr-scanner/qr-scanner.min.js"></script>
     <style>
         body {
@@ -56,9 +56,9 @@
                 highlightCodeOutline: true,
             });
 
-            function handleScannedLink(decodedText) {
+            async function handleScannedLink(decodedText) {
                 // Stop scanning and hide the scanner
-                qrScanner.stop();
+                await qrScanner.stop();
                 video.style.display = 'none';
                 cancelScanButton.style.display = 'none';
 
@@ -75,16 +75,24 @@
                 return regex.test(url);
             }
 
-            startScanButton.addEventListener('click', function () {
-                video.style.display = 'block';
-                cancelScanButton.style.display = 'inline';
-                qrScanner.start();
+            startScanButton.addEventListener('click', async function () {
+                try {
+                    // Start the QR scanner and display the video element
+                    video.style.display = 'block';
+                    cancelScanButton.style.display = 'inline';
+                    await qrScanner.start();
+                    console.log("QR Scanner started successfully.");
+                } catch (error) {
+                    console.error("Failed to start QR scanner:", error);
+                    alert("Unable to access camera. Please check permissions and try again.");
+                }
             });
 
-            cancelScanButton.addEventListener('click', function () {
-                qrScanner.stop();
+            cancelScanButton.addEventListener('click', async function () {
+                await qrScanner.stop();
                 video.style.display = 'none';
                 cancelScanButton.style.display = 'none';
+                console.log("QR Scanner stopped.");
             });
         });
     </script>
