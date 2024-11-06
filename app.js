@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let lastDecodedText = ""; // Store the last decoded text
 
     const video = document.getElementById('qr-video');
+    const audioPlayer = document.getElementById('audioplayer');
     const resultContainer = document.getElementById("qr-reader-results");
 
     qrScanner = new QrScanner(video, result => {
@@ -50,6 +51,11 @@ document.addEventListener('DOMContentLoaded', function () {
             else {
                 console.log("Invalid Hitster URL:", decodedText);
             }
+        } else if (decodedText.endsWith('.mp3') || decodedText.endsWith('.wav') || isHitsterLink(decodedText)) {
+            audioPlayer.src = decodedText;
+            audioPlayer.play();
+        } else {
+            console.log("Scanned link is not an audio file.");
         }
 
         console.log(`YouTube Video URL: ${youtubeURL}`);
