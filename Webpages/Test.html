@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Player with QR Code Scanner</title>
+    <script src="https://unpkg.com/qr-scanner/qr-scanner.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        #qr-reader, #audio-player, #controls {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>QR Code Audio Player</h1>
+    <video id="qr-video" style="width: 300px; height: 200px; display: none;"></video>
+    <audio controls id="audio-player" style="width: 100%; max-width: 400px;">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <div id="controls">
+        <button id="startScanButton">Start Scan</button>
+        <button id="cancelScanButton" style="display: none;">Stop Scan</button>
+    </div>
+
+    <script>
+        let qrScanner;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const audioPlayer = document.getElementById('audio-player');
+            const video = document.getElementById('qr-video');
+            const startScanButton = document.getElementById('startScanButton');
+            const cancelScanButton = document.getElementById('cancelScanButton');
+
+            qrScanner = new QrScanner(video, result => {
+                console.log('Decoded QR Code:', result.data);
+                handleScannedLink(result.data);
+            }, {
+                highlightScanRegion: true,
+                highlightCodeOutline: true,
+            });
+
+            function handleScannedLink(decodedText) {
+                // Stop scanning and hide the scanner
+                qrScanner.stop();
+                video.style.display = 'none';
+                cancelScanButton.style.display = 'none';
+
+                if (decodedText.endsWith('.mp3') || decodedText.endsWith('.wav') || isHitsterLink(decodedText)) {
+                    audioPlayer.src = decodedText;
+                    audioPlayer.play();
+                } else {
+                    console.log("Scanned link is not an audio file.");
+                }
+            }
+
+            function isHitsterLink(url) {
+                const regex = /^(?:http:\/\/|https:\/\/)?(www\.hitstergame|app\.hitsternordics)\.com\/.+/;
+                return regex.test(url);
+            }
+
+            startScanButton.addEventListener('click', function () {
+                video.style.display = 'block';
+                cancelScanButton.style.display = 'inline';
+                qrScanner.start();
+            });
+
+            cancelScanButton.addEventListener('click', function () {
+                qrScanner.stop();
+                video.style.display = 'none';
+                cancelScanButton.style.display = 'none';
+            });
+        });
+    </script>
+
+</body>
+</html>
