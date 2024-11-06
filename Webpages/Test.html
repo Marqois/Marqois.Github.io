@@ -40,62 +40,66 @@
     </div>
 
     <script>
-        import QrScanner from "https://unpkg.com/qr-scanner/qr-scanner.min.js";
+    import QrScanner from "https://unpkg.com/qr-scanner/qr-scanner.min.js";
 
-        let qrScanner;
+    let player; // Define player globally
+    let playbackTimer; // Hold the timer reference
+    let playbackDuration = 30; // Default playback duration in seconds
+    let qrScanner;
+    let csvCache = {};
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const audioPlayer = document.getElementById('audio-player');
-            const video = document.getElementById('qr-video');
-            const startScanButton = document.getElementById('startScanButton');
-            const cancelScanButton = document.getElementById('cancelScanButton');
+    document.addEventListener('DOMContentLoaded', function () {
 
-            qrScanner = new QrScanner(video, result => {
-                console.log('Decoded QR Code:', result.data);
+        let lastDecodedText = ""; // Store the last decoded text
+        const video = document.getElementById('qr-video');
+        const audioPlayer = document.getElementById('audioplayer');
+        const resultContainer = document.getElementById("qr-reader-results");
+
+        // Initialize QR scanner
+        qrScanner = new QrScanner(video, result => {
+            console.log('decoded qr code:', result);
+            if (result.data !== lastDecodedText) {
+                lastDecodedText = result.data; // Update the last decoded text
                 handleScannedLink(result.data);
-            }, {
-                highlightScanRegion: true,
-                highlightCodeOutline: true,
-            });
+            }
+        }, { 
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+        });
+        
+        qrScanner.start(); // Start the scanner
 
-            async function handleScannedLink(decodedText) {
-                // Stop scanning and hide the scanner
-                await qrScanner.stop();
-                video.style.display = 'none';
-                cancelScanButton.style.display = 'none';
+        // Function to handle scanned QR code link
+        async function handleScannedLink(data) {
+            if (data.endsWith(".mp3")) {  // Check if the link is an MP3 file
+                playAudio(data);
+                resultContainer.textContent = "Playing audio from: " + data;
+            } else {
+                resultContainer.textContent = "Scanned link is not an MP3 file.";
+                console.log("The scanned link is not an MP3 file.");
+            }
+        }
 
-                if (decodedText.endsWith('.mp3') || decodedText.endsWith('.wav') || isHitsterLink(decodedText)) {
-                    audioPlayer.src = decodedText;
-                    audioPlayer.play();
-                } else {
-                    console.log("Scanned link is not an audio file.");
-                }
+        // Function to play audio from a URL
+        function playAudio(url) {
+            // Stop any existing playback
+            if (player) {
+                player.pause();
+                player.currentTime = 0;
             }
 
-            function isHitsterLink(url) {
-                const regex = /^(?:http:\/\/|https:\/\/)?(www\.hitstergame|app\.hitsternordics)\.com\/.+/;
-                return regex.test(url);
-            }
+            // Initialize new audio player with the provided URL
+            player = new Audio(url);
+            player.play();
+            player.addEventListener('ended', () => console.log('Playback ended.'));
 
-            startScanButton.addEventListener('click', async function () {
-                try {
-                    // Start the QR scanner and display the video element
-                    video.style.display = 'block';
-                    cancelScanButton.style.display = 'inline';
-                    await qrScanner.start();
-                    console.log("QR Scanner started successfully.");
-                } catch (error) {
-                    console.error("Failed to start QR scanner:", error);
-                    alert("Unable to access camera. Please check permissions and try again.");
-                }
-            });
-
-            cancelScanButton.addEventListener('click', async function () {
-                await qrScanner.stop();
-                video.style.display = 'none';
-                cancelScanButton.style.display = 'none';
-                console.log("QR Scanner stopped.");
-            });
+            // Optional: Set a timer to stop after the specified playback duration
+            playbackTimer = setTimeout(() => {
+                player.pause();
+                player.currentTime = 0;
+                resultContainer.textContent = "Playback stopped after " + playbackDuration + " seconds.";
+            }, playbackDuration * 1000);
+        }
         });
     </script>
 
