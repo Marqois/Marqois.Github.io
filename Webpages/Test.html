@@ -3,105 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Audio Player</title>
-    <script src="https://unpkg.com/qr-scanner/qr-scanner.min.js"></script>
+    <title>QR Code MP3 Player</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        #qr-reader, #audio-player, #controls {
             margin-top: 20px;
         }
-        button {
-            padding: 10px 15px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 5px;
+        #qr-video {
+            width: 100%;
+            max-width: 400px;
+            border: 2px solid #333;
+            margin-bottom: 20px;
+        }
+        #qr-reader-results {
+            font-size: 1.2em;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-    <h1>QR Code Audio Player</h1>
-    <video id="qr-video" style="width: 300px; height: 200px; display: none;"></video>
-    <audio controls id="audio-player" style="width: 100%; max-width: 400px;">
-        Your browser does not support the audio element.
-    </audio>
-    
-    <div id="controls">
-        <button id="startScanButton">Start Scan</button>
-        <button id="cancelScanButton" style="display: none;">Stop Scan</button>
-    </div>
+    <h1>QR Code MP3 Player</h1>
+    <video id="qr-video"></video>
+    <div id="qr-reader-results">Scan a QR code with an MP3 link to play audio.</div>
 
-    <script>
-    import QrScanner from "https://unpkg.com/qr-scanner/qr-scanner.min.js";
+    <!-- Load QR Scanner library -->
+    <script type="module">
+        import QrScanner from "https://unpkg.com/qr-scanner/qr-scanner.min.js";
 
-    let player; // Define player globally
-    let playbackTimer; // Hold the timer reference
-    let playbackDuration = 30; // Default playback duration in seconds
-    let qrScanner;
-    let csvCache = {};
+        let player; // Audio player instance
+        let playbackTimer;
+        const playbackDuration = 30; // Duration to play audio in seconds
 
-    document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
+            const video = document.getElementById('qr-video');
+            const resultContainer = document.getElementById("qr-reader-results");
 
-        let lastDecodedText = ""; // Store the last decoded text
-        const video = document.getElementById('qr-video');
-        const audioPlayer = document.getElementById('audioplayer');
-        const resultContainer = document.getElementById("qr-reader-results");
-
-        // Initialize QR scanner
-        qrScanner = new QrScanner(video, result => {
-            console.log('decoded qr code:', result);
-            if (result.data !== lastDecodedText) {
-                lastDecodedText = result.data; // Update the last decoded text
+            // Initialize QR scanner
+            const qrScanner = new QrScanner(video, result => {
+                console.log('Decoded QR code:', result);
                 handleScannedLink(result.data);
-            }
-        }, { 
-            highlightScanRegion: true,
-            highlightCodeOutline: true,
-        });
-        
-        qrScanner.start(); // Start the scanner
+            }, { 
+                highlightScanRegion: true,
+                highlightCodeOutline: true,
+            });
+            qrScanner.start(); // Start scanning
 
-        // Function to handle scanned QR code link
-        async function handleScannedLink(data) {
-            if (data.endsWith(".mp3")) {  // Check if the link is an MP3 file
-                playAudio(data);
-                resultContainer.textContent = "Playing audio from: " + data;
-            } else {
-                resultContainer.textContent = "Scanned link is not an MP3 file.";
-                console.log("The scanned link is not an MP3 file.");
-            }
-        }
-
-        // Function to play audio from a URL
-        function playAudio(url) {
-            // Stop any existing playback
-            if (player) {
-                player.pause();
-                player.currentTime = 0;
+            // Handle the scanned QR code data
+            function handleScannedLink(data) {
+                if (data.endsWith(".mp3")) {  // Check if the scanned link is an MP3 file
+                    playAudio(data);
+                    resultContainer.textContent = "Playing audio from: " + data;
+                } else {
+                    resultContainer.textContent = "Scanned link is not an MP3 file.";
+                    console.log("The scanned link is not an MP3 file.");
+                }
             }
 
-            // Initialize new audio player with the provided URL
-            player = new Audio(url);
-            player.play();
-            player.addEventListener('ended', () => console.log('Playback ended.'));
+            // Play audio from the scanned URL
+            function playAudio(url) {
+                // Stop any existing playback
+                if (player) {
+                    player.pause();
+                    player.currentTime = 0;
+                }
 
-            // Optional: Set a timer to stop after the specified playback duration
-            playbackTimer = setTimeout(() => {
-                player.pause();
-                player.currentTime = 0;
-                resultContainer.textContent = "Playback stopped after " + playbackDuration + " seconds.";
-            }, playbackDuration * 1000);
-        }
+                // Initialize new audio player with the provided URL
+                player = new Audio(url);
+                player.play();
+                player.addEventListener('ended', () => console.log('Playback ended.'));
+
+                // Optional: Stop playback after specified duration
+                playbackTimer = setTimeout(() => {
+                    player.pause();
+                    player.currentTime = 0;
+                    resultContainer.textContent = "Playback stopped after " + playbackDuration + " seconds.";
+                }, playbackDuration * 1000);
+            }
         });
     </script>
-
 </body>
 </html>
