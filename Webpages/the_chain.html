@@ -3,7 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Playback</title>
+    
+    <title>Songseeker player</title>
+
+    <style>
+        /* Full height and width to center the content */
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Ensure the audio player aligns within the centered container */
+        audio {
+            max-width: 100%;
+        }
+
+        /* Styling for the button */
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+
 </head>
 <body>
 
@@ -11,6 +46,15 @@
         <source src="../Music/You Know My Name.mp3" type="audio/mp3">
         Your browser does not support the audio element.
     </audio>
+
+    <button onclick="goHome()">Return to Home</button>
+
+    <script>
+        function goHome() {
+            // Navigate to the homepage (adjust the path as needed)
+            window.location.href = "../index.html";
+        }
+    </script>
 
 </body>
 </html>
